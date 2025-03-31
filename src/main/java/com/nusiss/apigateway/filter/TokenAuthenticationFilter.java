@@ -28,7 +28,7 @@ public class TokenAuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-        String uri = request.getPath().toString();
+        /*String uri = request.getPath().toString();
         String method = exchange.getRequest().getMethod().toString();
         //all requests need to validate except for /validateUserAndPassword and /login
         if(!uri.contains("/validateUserAndPassword")
@@ -59,7 +59,7 @@ public class TokenAuthenticationFilter implements GlobalFilter, Ordered {
             } catch (Exception e) {
                 return handleException(response, e);
             }
-        }
+        }*/
 
         // If token is valid, proceed to the next filter in the chain
         return chain.filter(exchange);
