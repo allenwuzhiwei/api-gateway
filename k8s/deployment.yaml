@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: alllenwu249/api-gateway:latest
+          image: allenwu1/api-gateway:latest
           ports:
-            - containerPort: 8087
+            - containerPort: 8080
           resources:
             requests:
               cpu: "500m"
