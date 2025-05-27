@@ -80,8 +80,9 @@ public class JwtUtils {
 
     public boolean isValid(String token) {
         try {
-            extractUserName(token);
-            return true;
+            String username = extractUserName(token);
+
+            return redisCrudService.exists(username);
         } catch (Exception e) {
             return false;
         }

@@ -44,7 +44,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 token = authHeader.substring(7);
             }
-            if(jwtUtils.isValid(token)){
+            if(!jwtUtils.isValid(token)){
                 throw new CustomException("Invalid token.");
             }
             /*try {
