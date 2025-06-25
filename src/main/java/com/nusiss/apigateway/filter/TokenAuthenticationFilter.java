@@ -39,14 +39,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 && !uri.contains("/login")
                 && !uri.contains("/validateToken")
                 && !uri.contains("swagger")){
-            String token = null;
+            /*String token = null;
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 token = authHeader.substring(7);
             }
             if(!jwtUtils.isValid(token)){
                 throw new CustomException("Invalid token.");
-            }
+            }*/
             /*try {
                 if(!validateToken(token)){
                     throw new CustomException("Invalid token.");

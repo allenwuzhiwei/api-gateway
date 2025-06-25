@@ -32,7 +32,7 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
                 token = token.substring(7);
             }
             if(!jwtUtils.isValid(token)){
-                throw new CustomException("Invalid token.");
+                throw new CustomException("Invalid authentication token.");
             }
         }
 
