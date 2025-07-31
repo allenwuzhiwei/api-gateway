@@ -25,6 +25,7 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
         if (!uri.contains("/validateUserAndPassword")
                 && !uri.contains("/login")
                 && !uri.contains("/validateToken")
+                && !uri.contains("/api/user")
                 && !uri.contains("swagger")
                 && !uri.contains(".png")
                 && !uri.contains(".jpg")) {

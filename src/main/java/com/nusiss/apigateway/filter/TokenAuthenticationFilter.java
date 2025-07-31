@@ -34,9 +34,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String uri = request.getRequestURI();
         String method = request.getMethod();
-        //all requests need to validate except for /validateUserAndPassword and /login
+        //all requests need to validate except for /validateUserAndPassword and /login,/api/user(POST)
         if(!uri.contains("/validateUserAndPassword")
                 && !uri.contains("/login")
+                && !uri.contains("/api/user")
                 && !uri.contains("/validateToken")
                 && !uri.contains("swagger")){
             /*String token = null;
