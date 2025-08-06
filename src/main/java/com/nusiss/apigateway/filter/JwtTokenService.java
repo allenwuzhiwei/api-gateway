@@ -1,9 +1,16 @@
 package com.nusiss.apigateway.filter;
 
+import com.nusiss.commonservice.config.ApiResponse;
+import com.nusiss.commonservice.entity.User;
+import com.nusiss.commonservice.feign.UserFeignClient;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.http.ResponseEntity;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
@@ -11,9 +18,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Configuration
 public class JwtTokenService {
+
+    @Lazy
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     // Secret key for signing the JWT. Keep this secure and don't expose it.
     public static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
@@ -47,6 +59,24 @@ public class JwtTokenService {
                 .compact();
     }
 
+    public ResponseEntity<ApiResponse<User>> getCurrentUserInfoWithTokenString(String authToken){
 
+        return userFeignClient.getCurrentUserInfoWithTokenString(authToken);
+    }
+
+    public ResponseEntity<ApiResponse<Integer>> getRoleByUserId(Integer userId){
+
+        return userFeignClient.getRoleByUserId(userId);
+    }
+
+    public ResponseEntity<Set<String>> findPermissionsByUserId(Integer userId){
+
+        return userFeignClient.findPermissionsByUserId(userId);
+    }
+
+    /*public ResponseEntity<ApiResponse<User>> findByUsername(String userName){
+
+        return userFeignClient.findByUsername(userName);
+    }*/
 
 }

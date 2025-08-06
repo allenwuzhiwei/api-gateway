@@ -1,16 +1,25 @@
 package com.nusiss.apigateway.filter;
 
-import com.nusiss.apigateway.config.RedisCrudService;
 import com.nusiss.apigateway.exception.CustomException;
 import com.nusiss.apigateway.util.JwtUtils;
+import com.nusiss.commonservice.config.ApiResponse;
+import com.nusiss.commonservice.entity.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Set;
 
 @Component
 public class TokenCheckFilter implements GlobalFilter, Ordered {
@@ -18,10 +27,23 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private JwtTokenService jwtTokenService;
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    @Bean
+    public HttpMessageConverters messageConverters() {
+        return new HttpMessageConverters();
+    }
+
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String token = exchange.getRequest().getHeaders().getFirst("Authorization");
+        String authToken = exchange.getRequest().getHeaders().getFirst("Authorization");
         String uri = exchange.getRequest().getURI().toString();
+        String path = exchange.getRequest().getPath().toString();
         if (!uri.contains("/validateUserAndPassword")
                 && !uri.contains("/login")
                 && !uri.contains("/validateToken")
@@ -32,9 +54,38 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
             if (StringUtils.isNotBlank(token) && token.startsWith("Bearer ")) {
                 token = token.substring(7);
             }
-            if(!jwtUtils.isValid(token)){
+            if (!jwtUtils.isValid(token)) {
                 throw new CustomException("Invalid authentication token.");
+
+            } else {
+                ResponseEntity<ApiResponse<User>> userResponse = jwtTokenService.getCurrentUserInfoWithTokenString(authToken);
+                User user = userResponse.getBody().getData();
+                Integer userId = user.getUserId();
+                ResponseEntity<ApiResponse<Integer>> roleResponse = jwtTokenService.getRoleByUserId(userId);
+                Integer roleId = roleResponse.getBody().getData();
+                // do check for admin user
+                if (roleId == 5) {
+                    return chain.filter(exchange);
+                }
+                ResponseEntity<Set<String>> permissionResponse = jwtTokenService.findPermissionsByUserId(userId);
+                Set<String> permissions = permissionResponse.getBody();
+                boolean matchFound = permissions.stream()
+                        .anyMatch(pattern -> pathMatcher.match(pattern, path));
+                if (matchFound) {
+                    chain.filter(exchange);
+                } else {
+                    String message = "No access for the resource.";
+                    String body = String.format("{\"success\":false,\"message\":\"%s\"}", message);
+                    DataBuffer buffer = exchange.getResponse()
+                            .bufferFactory()
+                            .wrap(body.getBytes());
+                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+
+                    return exchange.getResponse().writeWith(Mono.just(buffer));
+                }
             }
+
+
         }
 
         // continue the chain
@@ -43,7 +94,6 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1; // high precedence
+        return 0;
     }
-
 }
