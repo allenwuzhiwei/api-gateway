@@ -7,5 +7,5 @@ spec:
   selector:
     app: api-gateway
   ports:
-    - port: 30080
-      targetPort: 30080
+    - port: 8080
+      targetPort: 8080
