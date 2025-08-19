@@ -30,8 +30,6 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
     @Autowired
     private JwtTokenService jwtTokenService;
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
     @Bean
     public HttpMessageConverters messageConverters() {
         return new HttpMessageConverters();
@@ -58,20 +56,9 @@ public class TokenCheckFilter implements GlobalFilter, Ordered {
                 throw new CustomException("Invalid authentication token.");
 
             } else {
-                ResponseEntity<ApiResponse<User>> userResponse = jwtTokenService.getCurrentUserInfoWithTokenString(authToken);
-                User user = userResponse.getBody().getData();
-                Integer userId = user.getUserId();
-                ResponseEntity<ApiResponse<Integer>> roleResponse = jwtTokenService.getRoleByUserId(userId);
-                Integer roleId = roleResponse.getBody().getData();
-                // do check for admin user
-                if (roleId == 5) {
-                    return chain.filter(exchange);
-                }
-                ResponseEntity<Set<String>> permissionResponse = jwtTokenService.findPermissionsByUserId(userId);
-                Set<String> permissions = permissionResponse.getBody();
-                boolean matchFound = permissions.stream()
-                        .anyMatch(pattern -> pathMatcher.match(pattern, path));
-                if (matchFound) {
+                ResponseEntity<ApiResponse<Boolean>> userResponse = jwtTokenService.checkPermission(authToken, path);
+                Boolean haspermissions = userResponse.getBody().getData();
+                if (haspermissions) {
                     chain.filter(exchange);
                 } else {
                     String message = "No access for the resource.";

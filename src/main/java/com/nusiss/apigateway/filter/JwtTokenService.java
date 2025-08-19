@@ -74,6 +74,11 @@ public class JwtTokenService {
         return userFeignClient.findPermissionsByUserId(userId);
     }
 
+    public ResponseEntity<ApiResponse<Boolean>> checkPermission(String authToken, String path){
+
+        return userFeignClient.checkPermission(authToken, path);
+    }
+
     /*public ResponseEntity<ApiResponse<User>> findByUsername(String userName){
 
         return userFeignClient.findByUsername(userName);
